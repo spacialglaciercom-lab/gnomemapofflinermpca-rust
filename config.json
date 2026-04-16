@@ -1,0 +1,12 @@
+{
+  "models": [
+    {
+      "title": "OpenRouter GLM-5",
+      "provider": "openrouter",
+      "model": "glm-5",
+      "apiKey": "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",
+      "apiBase": "https://openrouter.ai/api/v1"
+    }
+  ],
+  "defaultModel": "OpenRouter GLM-5"
+}
