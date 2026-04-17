@@ -43,6 +43,9 @@ envy = "0.4"
 rkyv = "0.7"  # Zero-copy deserialization
 bincode = "1.3"   # Fallback serialization
 
+# OSM PBF parsing for offline mode
+osmpbfreader = "0.16"
+
 # Property-based testing for algorithmic correctness (dev dependency)
 proptest = "1.4"
 

@@ -1,0 +1,193 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $Gjs_TransitOptionsPanel: Grid {
+  styles [
+    "shaded",
+  ]
+
+  DropDown transitTimeOptionsDropDown {
+    margin-start: 6;
+    margin-end: 3;
+    margin-top: 6;
+    margin-bottom: 6;
+
+    model: StringList {
+      strings [
+        // Translators: Indicates searching for the next available itineraries
+        _("Leave Now"),
+        // Translators: Indicates searching for itineraries leaving at the specified time at the earliest
+        _("Leave By"),
+        // Translators: Indicates searching for itineraries arriving no later than the specified time
+        _("Arrive By"),
+      ]
+    };
+
+    layout {
+      column: 0;
+      row: 0;
+    }
+  }
+
+  MenuButton transitTimeButton {
+    visible: false;
+    popover: transitTimePopover;
+    margin-start: 3;
+    margin-end: 3;
+    margin-top: 6;
+    margin-bottom: 6;
+
+    layout {
+      column: 1;
+      row: 0;
+    }
+  }
+
+  MenuButton transitDateButton {
+    visible: false;
+    popover: transitDatePopover;
+    margin-start: 3;
+    margin-end: 3;
+    margin-top: 6;
+    margin-bottom: 6;
+
+    layout {
+      column: 2;
+      row: 0;
+    }
+  }
+
+  MenuButton transitParametersMenuButton {
+    tooltip-text: _("View More");
+    popover: transitParametersPopover;
+    halign: end;
+    margin-start: 3;
+    margin-end: 6;
+    margin-top: 6;
+    margin-bottom: 6;
+    hexpand: true;
+    icon-name: "view-more-symbolic";
+
+    layout {
+      column: 3;
+      row: 0;
+    }
+  }
+}
+
+Popover transitTimePopover {
+  child: Box {
+    orientation: horizontal;
+    spacing: 4;
+
+    SpinButton transitTimeHourSpinButton {
+      orientation: vertical;
+      digits: 0;
+      numeric: true;
+      wrap: true;
+      adjustment: Adjustment {
+        step-increment: 1;
+        page-increment: 10;
+        page-size: 0;
+      };
+    }
+
+    Label {
+      label: ":";
+      xalign: 0;
+      yalign: 0.5;
+    }
+
+    SpinButton transitTimeMinuteSpinButton {
+      orientation: vertical;
+      digits: 0;
+      numeric: true;
+      wrap: true;
+      adjustment: Adjustment {
+        lower: 0;
+        upper: 59;
+        step-increment: 1;
+        page-increment: 10;
+        page-size: 0;
+      };
+    }
+
+    Adw.ToggleGroup transitTimeAmPmToggleGroup {
+      hexpand: false;
+      vexpand: false;
+      valign: center;
+      margin-start: 6;
+
+      Adw.Toggle {
+        name: "am";
+        label: _("AM");
+      }
+
+      Adw.Toggle {
+        name: "pm";
+        label: _("PM");
+      }
+    }
+  };
+}
+
+Popover transitDatePopover {
+  child: Calendar transitDateCalendar {};
+}
+
+Popover transitParametersPopover {
+  child: Grid {
+    margin-start: 6;
+    margin-end: 6;
+    margin-top: 6;
+    margin-bottom: 6;
+    orientation: vertical;
+
+    Label {
+      halign: start;
+      // Translators: Header indicating selected modes of transit
+      label: _("Show");
+      margin-start: 6;
+
+      styles [
+        "dimmed",
+      ]
+    }
+
+    CheckButton busCheckButton {
+      active: true;
+      label: _("_Buses");
+      use-underline: true;
+    }
+
+    CheckButton tramCheckButton {
+      active: true;
+      label: _("_Trams");
+      use-underline: true;
+    }
+
+    CheckButton trainCheckButton {
+      active: true;
+      label: _("T_rains");
+      use-underline: true;
+    }
+
+    CheckButton subwayCheckButton {
+      active: true;
+      label: _("_Subway");
+      use-underline: true;
+    }
+
+    CheckButton ferryCheckButton {
+      active: true;
+      label: _("_Ferries");
+      use-underline: true;
+    }
+
+    CheckButton airplaneCheckButton {
+      active: true;
+      label: _("_Airplanes");
+      use-underline: true;
+    }
+  };
+}

@@ -1,0 +1,103 @@
+/* -*- Mode: JS2; indent-tabs-mode: nil; js2-basic-offset: 4 -*- */
+/* vim: set et ts=4 sw=4: */
+/*
+ * Copyright (c) 2020 Marcus Lundblad
+ *
+ * GNOME Maps is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 2 of the License, or (at your
+ * option) any later version.
+ *
+ * GNOME Maps is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with GNOME Maps; if not, see <http://www.gnu.org/licenses/>.
+ *
+ * Author: Marcus Lundblad <ml@update.uu.se>
+ */
+
+const JsUnit = imports.jsUnit;
+
+import GLib from 'gi://GLib';
+
+import * as Time from '../src/time.js';
+
+function compare12HourTime(format, hoursMinutes, AMPM) {
+    JsUnit.assertTrue(format.includes(hoursMinutes));
+    JsUnit.assertTrue(format.endsWith(AMPM));
+}
+
+function formatDateTimeTest() {
+    // mock to always use 24 hour format
+    Time._setIs12HourFunction(() => { return false; });
+
+    const date1 = GLib.DateTime.new_from_iso8601('2025-11-03T21:14:29Z', null);
+    // date during European DST
+    const date2 = GLib.DateTime.new_from_iso8601('2025-07-01T12:34:56Z', null);
+
+    JsUnit.assertEquals('22:14',
+                        Time.formatDateTime(date1.to_timezone(GLib.TimeZone.new_identifier('Europe/Stockholm'))));
+    JsUnit.assertEquals('21:14',
+                        Time.formatDateTime(date1.to_timezone(GLib.TimeZone.new_identifier('Europe/London'))));
+    JsUnit.assertEquals('14:34',
+                        Time.formatDateTime(date2.to_timezone(GLib.TimeZone.new_identifier('Europe/Stockholm'))));
+    JsUnit.assertEquals('13:34',
+                        Time.formatDateTime(date2.to_timezone(GLib.TimeZone.new_identifier('Europe/London'))));
+
+    // mock to always use 12 hour format
+    Time._setIs12HourFunction(() => { return true; });
+
+    compare12HourTime(Time.formatDateTime(date1.to_timezone(GLib.TimeZone.new_identifier('Europe/Stockholm'))),
+                      '10:14', 'PM');
+    compare12HourTime(Time.formatDateTime(date1.to_timezone(GLib.TimeZone.new_identifier('Europe/London'))),
+                      '09:14', 'PM');
+    compare12HourTime(Time.formatDateTime(date2.to_timezone(GLib.TimeZone.new_identifier('Europe/Stockholm'))),
+                      '02:34', 'PM');
+    compare12HourTime(Time.formatDateTime(date2.to_timezone(GLib.TimeZone.new_identifier('Europe/London'))),
+                      '01:34', 'PM');
+}
+
+function formatTimeFromHoursAndMinsTest() {
+    // mock to always use 24 hour format
+    Time._setIs12HourFunction(() => { return false; });
+
+    JsUnit.assertEquals('12:34', Time.formatTimeFromHoursAndMins(12, 34));
+    JsUnit.assertEquals('00:00', Time.formatTimeFromHoursAndMins(24, 0));
+    JsUnit.assertEquals('12:01', Time.formatTimeFromHoursAndMins(12, 1));
+
+    // mock to always use 12 hour format
+    Time._setIs12HourFunction(() => { return true; });
+
+    compare12HourTime(Time.formatTimeFromHoursAndMins(12, 34), '12:34', 'PM');
+    compare12HourTime(Time.formatTimeFromHoursAndMins(24, 0), '12:00', 'AM');
+    compare12HourTime(Time.formatTimeFromHoursAndMins(12, 1), '12:01', 'PM');
+}
+
+function parseDateTimeTest() {
+    // valid date
+    const dateValid =
+        Time.parseDateTime('2025-11-06T22:33:44Z',
+                           GLib.TimeZone.new_identifier('Europe/Stockholm'));
+    // invalid date
+    const dateInvalid =
+        Time.parseDateTime('invalid-date',
+                           GLib.TimeZone.new_identifier('Asia/Tokyo'));
+
+    JsUnit.assertEquals(2025, dateValid.get_year());
+    JsUnit.assertEquals(11, dateValid.get_month());
+    JsUnit.assertEquals(6, dateValid.get_day_of_month());
+    JsUnit.assertEquals(23, dateValid.get_hour());
+    JsUnit.assertEquals(33, dateValid.get_minute());
+    JsUnit.assertEquals(44, dateValid.get_second());
+    JsUnit.assertEquals('Europe/Stockholm',
+                        dateValid.get_timezone().get_identifier());
+    JsUnit.assertNull(dateInvalid);
+}
+
+formatDateTimeTest();
+formatTimeFromHoursAndMinsTest();
+
+parseDateTimeTest();

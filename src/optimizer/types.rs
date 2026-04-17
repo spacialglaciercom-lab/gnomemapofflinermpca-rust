@@ -98,6 +98,18 @@ pub struct OptimizationResult {
 
     /// Optional route statistics
     pub stats: Option<RouteStats>,
+
+    /// Deadhead distance (distance traversed on repeated edges) in kilometers
+    pub deadhead_distance_km: f64,
+
+    /// Efficiency percentage (unique edge distance / total distance * 100)
+    pub efficiency_percent: f64,
+
+    /// Total number of edges in the original graph
+    pub edge_count: usize,
+
+    /// Total number of nodes in the original graph
+    pub node_count: usize,
 }
 
 impl OptimizationResult {
@@ -108,6 +120,10 @@ impl OptimizationResult {
             total_distance,
             message: "Optimization complete".to_string(),
             stats: None,
+            deadhead_distance_km: 0.0,
+            efficiency_percent: 100.0,
+            edge_count: 0,
+            node_count: 0,
         }
     }
 
@@ -126,6 +142,50 @@ impl OptimizationResult {
             },
         };
         self.stats = Some(stats);
+    }
+
+    /// Set the deadhead distance (distance from traversing edges more than once)
+    pub fn with_deadhead(mut self, deadhead: f64) -> Self {
+        self.deadhead_distance_km = deadhead;
+        self.efficiency_percent = if self.total_distance > 0.0 {
+            ((self.total_distance - deadhead) / self.total_distance) * 100.0
+        } else {
+            100.0
+        };
+        self
+    }
+
+    /// Set graph size statistics
+    pub fn with_graph_size(mut self, edge_count: usize, node_count: usize) -> Self {
+        self.edge_count = edge_count;
+        self.node_count = node_count;
+        self
+    }
+
+    /// Generate a GPX string from this optimization result
+    pub fn to_gpx(&self) -> String {
+        let mut gpx = String::from(r#"<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="rmpca" xmlns="http://www.topografix.com/GPX/1/1">
+  <metadata>
+    <name>Coverage Route</name>
+  </metadata>
+  <trk>
+    <name>Coverage Route</name>
+    <trkseg>
+"#);
+
+        for pt in &self.route {
+            gpx.push_str(&format!(
+                "      <trkpt lat=\"{:.7}\" lon=\"{:.7}\" />\n",
+                pt.latitude, pt.longitude
+            ));
+        }
+
+        gpx.push_str(r#"    </trkseg>
+  </trk>
+</gpx>
+"#);
+        gpx
     }
 }
 

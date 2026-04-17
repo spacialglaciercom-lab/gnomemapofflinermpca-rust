@@ -7,6 +7,7 @@ pub mod extract_osm;
 pub mod logs;
 pub mod optimize;
 pub mod pipeline;
+pub mod serve;
 pub mod status;
 pub mod validate;
 
@@ -18,5 +19,6 @@ pub use extract_osm::ExtractOsmArgs;
 pub use logs::LogsArgs;
 pub use optimize::OptimizeArgs;
 pub use pipeline::PipelineArgs;
+pub use serve::ServeArgs;
 pub use status::StatusArgs;
 pub use validate::ValidateArgs;

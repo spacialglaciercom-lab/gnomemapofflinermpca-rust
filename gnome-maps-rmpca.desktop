@@ -1,0 +1,14 @@
+[Desktop Entry]
+Name=Maps (rmpca)
+Comment=Browse maps and optimize routes (offline-first)
+Exec=bash -c 'echo "DEBUG: Launching GNOME Maps with rmpca..."; export GI_TYPELIB_PATH="/usr/local/lib/gnome-maps/girepository-1.0:$GI_TYPELIB_PATH"; echo "DEBUG: GI_TYPELIB_PATH set to: $GI_TYPELIB_PATH"; export GSETTINGS_BACKEND=memory; echo "DEBUG: GSETTINGS_BACKEND set to: $GSETTINGS_BACKEND"; export RMPCA_PATH="/usr/local/bin/rmpca"; echo "DEBUG: RMPCA_PATH set to: $RMPCA_PATH"; export RMPCA_OFFLINE_MAP="/home/drone/Downloads/overture_montreal-roads-only.geojson"; echo "DEBUG: RMPCA_OFFLINE_MAP set to: $RMPCA_OFFLINE_MAP"; gsettings set org.gnome.Maps rmpca-path "$RMPCA_PATH"; gsettings set org.gnome.Maps cpp-offline-map-file "$RMPCA_OFFLINE_MAP"; echo "DEBUG: Executing: /usr/local/bin/gnome-maps"; /usr/local/bin/gnome-maps'
+Icon=org.gnome.Maps
+Type=Application
+Terminal=false
+Categories=GNOME;GTK;HasDrive;Utility;
+StartupNotify=true
+Actions=NewWindow;
+
+[Desktop Action NewWindow]
+Name=New Window
+Exec=bash -c 'echo "DEBUG: Launching GNOME Maps with rmpca..."; export GI_TYPELIB_PATH="/usr/local/lib/gnome-maps/girepository-1.0:$GI_TYPELIB_PATH"; echo "DEBUG: GI_TYPELIB_PATH set to: $GI_TYPELIB_PATH"; export GSETTINGS_BACKEND=memory; echo "DEBUG: GSETTINGS_BACKEND set to: $GSETTINGS_BACKEND"; export RMPCA_PATH="/usr/local/bin/rmpca"; echo "DEBUG: RMPCA_PATH set to: $RMPCA_PATH"; export RMPCA_OFFLINE_MAP="/home/drone/Downloads/overture_montreal-roads-only.geojson"; echo "DEBUG: RMPCA_OFFLINE_MAP set to: $RMPCA_OFFLINE_MAP"; gsettings set org.gnome.Maps rmpca-path "$RMPCA_PATH"; gsettings set org.gnome.Maps cpp-offline-map-file "$RMPCA_OFFLINE_MAP"; echo "DEBUG: Executing: /usr/local/bin/gnome-maps"; /usr/local/bin/gnome-maps'

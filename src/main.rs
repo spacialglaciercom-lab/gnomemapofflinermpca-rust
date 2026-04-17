@@ -11,6 +11,7 @@ mod commands;
 mod config;
 mod geo;
 mod optimizer;
+mod osm;
 
 use client::RmpClient;
 use config::Config;
@@ -57,6 +58,9 @@ enum Commands {
 
     /// Show health/status of all rmpca jails and services
     Status(commands::status::StatusArgs),
+
+    /// JSON interface for GUI integration (reads stdin, writes stdout)
+    Serve(commands::serve::ServeArgs),
 
     /// Tail service logs from a jail
     Logs(commands::logs::LogsArgs),
@@ -116,6 +120,7 @@ async fn main() -> Result<()> {
         Commands::Validate(args) => commands::validate::run(args, &client).await,
         Commands::Pipeline(args) => commands::pipeline::run(args, &client).await,
         Commands::Status(args) => commands::status::run(args, &client).await,
+        Commands::Serve(args) => commands::serve::run(args, &config),
         Commands::Logs(args) => commands::logs::run(args, &client).await,
         Commands::TestProperties => {
             // Run property-based tests
