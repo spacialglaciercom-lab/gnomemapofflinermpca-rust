@@ -24,10 +24,14 @@
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 
+import gettext from 'gettext';
+
 import {BoundingBox} from './boundingBox.js';
 import {TurnPoint, Route} from './route.js';
 import {CPPRoute} from './cppRoute.js';
 import * as Utils from './utils.js';
+
+const _ = gettext.gettext;
 
 /* Default path to the rmpca binary */
 const RMPCA_DEFAULT_PATH = 'rmpca';
@@ -295,7 +299,7 @@ export class CPPOptimizer {
                 try {
                     let [line] = dstream.read_line_finish(res);
                     if (line !== null) {
-                        let str = imports.byteArray.toString(line);
+                        let str = Utils.getBufferText(line);
                         if (str.trim())
                             onLine(str);
                         readLine(); // continue reading
@@ -320,7 +324,7 @@ export class CPPOptimizer {
                 try {
                     let bytes = src.read_bytes_finish(res);
                     if (bytes.get_size() > 0) {
-                        let chunk = imports.byteArray.toString(bytes.get_data());
+                        let chunk = Utils.getBufferText(bytes.get_data());
                         onData(chunk);
                         src.read_bytes_async(4096, GLib.PRIORITY_DEFAULT, null, readChunk);
                     } else {
