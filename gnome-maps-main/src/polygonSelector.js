@@ -63,8 +63,11 @@ export class PolygonSelector {
 
     /**
      * Activate polygon drawing mode.
-     * @param {function} callback - Called with polygon coordinates
-     *                              [[lon,lat], ...] when closed.
+     * @param {function} callback - Called as `callback(polygon, closed)` on
+     *     every vertex change. `polygon` is the closed ring
+     *     [[lon,lat], ...] when there are at least 3 vertices, otherwise
+     *     `null`. `closed` is `true` only when the user explicitly closes
+     *     the polygon (double-click or click near first vertex).
      */
     enable(callback) {
         if (this._active)
@@ -179,13 +182,8 @@ export class PolygonSelector {
         if (this._vertices.length < 3)
             return;
 
-        /* Build closed coordinate ring: [[lon, lat], ...] */
-        let coords = this._vertices.map(v => [v.lon, v.lat]);
-        /* Close the ring by repeating the first point */
-        coords.push([this._vertices[0].lon, this._vertices[0].lat]);
-
         if (this._callback)
-            this._callback(coords);
+            this._callback(this._currentRing(), true);
 
         /* Clean up gesture but keep the polygon visible */
         if (this._clickGesture) {
@@ -198,7 +196,18 @@ export class PolygonSelector {
 
     /* ---- Polygon rendering ---------------------------------------------- */
 
+    _currentRing() {
+        if (this._vertices.length < 3)
+            return null;
+        let coords = this._vertices.map(v => [v.lon, v.lat]);
+        coords.push([this._vertices[0].lon, this._vertices[0].lat]);
+        return coords;
+    }
+
     _updatePoly() {
+        if (this._callback)
+            this._callback(this._currentRing(), false);
+
         if (!this._polyLayer)
             return;
 

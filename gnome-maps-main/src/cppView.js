@@ -122,10 +122,12 @@ export class CPPView extends Gtk.Box {
         this._drawingArea = true;
         this._drawAreaButton.label = _('Cancel Drawing');
 
-        this._mapView.enablePolygonSelection((polygon) => {
+        this._mapView.enablePolygonSelection((polygon, closed) => {
             this._polygon = polygon;
-            this._drawingArea = false;
-            this._drawAreaButton.label = _('Area Selected');
+            if (closed) {
+                this._drawingArea = false;
+                this._drawAreaButton.label = _('Area Selected');
+            }
         });
     }
 
