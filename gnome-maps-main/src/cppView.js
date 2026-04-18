@@ -92,7 +92,7 @@ export class CPPView extends Gtk.Box {
         filter.add_pattern('*.osm.pbf');
         filter.name = _('OSM PBF files');
 
-        let filters = new Gio.ListStore(Gtk.FileFilter);
+        let filters = new Gio.ListStore(Gtk.FileFilter.Gtype);
         filters.append(filter);
         dialog.filters = filters;
         dialog.default_filter = filter;
@@ -275,7 +275,7 @@ export class CPPView extends Gtk.Box {
         filter.add_pattern('*.gpx');
         filter.name = _('GPX files');
 
-        let filters = new Gio.ListStore(Gtk.FileFilter);
+        let filters = new Gio.ListStore(Gtk.FileFilter.Gtype);
         filters.append(filter);
         dialog.filters = filters;
 
