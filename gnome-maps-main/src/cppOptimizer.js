@@ -24,13 +24,19 @@
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 
+import gettext from 'gettext';
+
 import {BoundingBox} from './boundingBox.js';
 import {TurnPoint, Route} from './route.js';
 import {CPPRoute} from './cppRoute.js';
 import * as Utils from './utils.js';
 
+const _ = gettext.gettext;
+
 /* Default path to the rmpca binary */
 const RMPCA_DEFAULT_PATH = 'rmpca';
+
+const SIGTERM = 15;
 
 /**
  * CPPOptimizer — subprocess wrapper around `rmpca serve`
@@ -57,7 +63,7 @@ export class CPPOptimizer {
      */
     cancelCurrentRequest() {
         if (this._subprocess) {
-            this._subprocess.send_signal(15); // SIGTERM
+            this._subprocess.send_signal(SIGTERM);
             this._subprocess = null;
         }
     }
@@ -69,7 +75,7 @@ export class CPPOptimizer {
      * @param {Object} options
      * @param {string} options.offlineMapFile - Path to .osm.pbf file
      * @param {string} [options.profile='truck'] - Vehicle profile
-     * @param {[number,number]} [options.depot] - Optional [lon, lat] depot
+     * @param {[number,number]} [options.depot] - Optional [lat, lon] depot
      * @param {function} onProgress - Called with {message, percent}
      */
     optimize(polygon, options, onProgress) {
@@ -231,8 +237,12 @@ export class CPPOptimizer {
             let stdinStream = proc.get_stdin_pipe();
             let stdinBytes = new GLib.Bytes(requestJSON + '\n');
             stdinStream.write_bytes_async(stdinBytes, GLib.PRIORITY_DEFAULT, null, (s, r) => {
-                s.write_bytes_finish(r);
-                s.close(null);
+                try {
+                    s.write_bytes_finish(r);
+                    s.close(null);
+                } catch (e) {
+                    Utils.debug('CPP: GPX stdin write error: ' + e.message);
+                }
             });
 
             // Read GPX from stdout
@@ -243,7 +253,12 @@ export class CPPOptimizer {
                 gpxBuf += chunk;
             }, () => {
                 proc.wait_async(null, (p, r) => {
-                    p.wait_finish(r);
+                    try {
+                        p.wait_finish(r);
+                    } catch (e) {
+                        onComplete(null, e.message);
+                        return;
+                    }
                     if (p.get_exit_status() === 0)
                         onComplete(gpxBuf, null);
                     else
@@ -295,7 +310,7 @@ export class CPPOptimizer {
                 try {
                     let [line] = dstream.read_line_finish(res);
                     if (line !== null) {
-                        let str = imports.byteArray.toString(line);
+                        let str = Utils.getBufferText(line);
                         if (str.trim())
                             onLine(str);
                         readLine(); // continue reading
@@ -320,7 +335,7 @@ export class CPPOptimizer {
                 try {
                     let bytes = src.read_bytes_finish(res);
                     if (bytes.get_size() > 0) {
-                        let chunk = imports.byteArray.toString(bytes.get_data());
+                        let chunk = Utils.getBufferText(bytes.get_data());
                         onData(chunk);
                         src.read_bytes_async(4096, GLib.PRIORITY_DEFAULT, null, readChunk);
                     } else {

@@ -92,7 +92,7 @@ export class CPPView extends Gtk.Box {
         filter.add_pattern('*.osm.pbf');
         filter.name = _('OSM PBF files');
 
-        let filters = new Gio.ListStore(Gtk.FileFilter);
+        let filters = new Gio.ListStore(Gtk.FileFilter.Gtype);
         filters.append(filter);
         dialog.filters = filters;
         dialog.default_filter = filter;
@@ -122,10 +122,12 @@ export class CPPView extends Gtk.Box {
         this._drawingArea = true;
         this._drawAreaButton.label = _('Cancel Drawing');
 
-        this._mapView.enablePolygonSelection((polygon) => {
+        this._mapView.enablePolygonSelection((polygon, closed) => {
             this._polygon = polygon;
-            this._drawingArea = false;
-            this._drawAreaButton.label = _('Area Selected');
+            if (closed) {
+                this._drawingArea = false;
+                this._drawAreaButton.label = _('Area Selected');
+            }
         });
     }
 
@@ -235,7 +237,7 @@ export class CPPView extends Gtk.Box {
 
     _onRouteReset() {
         this._clearResults();
-        this._mapView._clearCPPRouteLayers();
+        this._mapView.clearCPPRoute();
     }
 
     /* ================================================================== */
@@ -273,7 +275,7 @@ export class CPPView extends Gtk.Box {
         filter.add_pattern('*.gpx');
         filter.name = _('GPX files');
 
-        let filters = new Gio.ListStore(Gtk.FileFilter);
+        let filters = new Gio.ListStore(Gtk.FileFilter.Gtype);
         filters.append(filter);
         dialog.filters = filters;
 
