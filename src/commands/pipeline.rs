@@ -1,6 +1,7 @@
 use crate::client::RmpClient;
 use anyhow::{Context, Result};
 use clap::Args;
+use geojson::FeatureCollection;
 use std::path::PathBuf;
 
 #[derive(Debug, Args)]
@@ -75,8 +76,10 @@ pub async fn run(args: PipelineArgs, client: &RmpClient) -> Result<()> {
         geojson_raw
     } else {
         if !args.quiet { eprintln!("[2/3] Cleaning GeoJSON..."); }
-        // TODO: Call clean logic directly (in-process)
-        geojson_raw
+        let fc: FeatureCollection = geojson_raw.parse()
+            .context("Failed to parse GeoJSON for cleaning")?;
+        let cleaned_fc = super::clean::clean_feature_collection(fc, true, true, None, None);
+        serde_json::to_string(&cleaned_fc)?
     };
 
     // Step 3: Optimize
