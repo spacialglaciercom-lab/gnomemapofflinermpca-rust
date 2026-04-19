@@ -19,7 +19,9 @@
  * Author: Marcus Lundblad <ml@update.uu.se>
  */
 
+import {Application} from './application.js';
 import {GraphHopper} from './graphHopper.js';
+import {RmpcaRouter} from './rmpcaRouter.js';
 import {Transitous} from './transitous.js';
 import {Plan} from './transit/plan.js';
 import { Route } from './route.js';
@@ -33,7 +35,14 @@ export class RoutingDelegator {
         this._plan = new Plan();
 
         this._transitRouting = false;
-        this._graphHopper = new GraphHopper({ query: this._query, route: this._route });
+
+        let offlineFile = Application.settings.get('cpp-offline-map-file');
+        let rmpcaPath   = Application.settings.get('rmpca-path');
+        this._graphHopper = offlineFile
+            ? new RmpcaRouter({ query: this._query, route: this._route,
+                                 osmFile: offlineFile, rmpcaPath })
+            : new GraphHopper({ query: this._query, route: this._route });
+
         this._transitous = new Transitous({ query: this._query, plan: this._plan });
         this._query.connect('notify::points', this._onQueryChanged.bind(this));
         this._ignoreNextQueryChange = false;
