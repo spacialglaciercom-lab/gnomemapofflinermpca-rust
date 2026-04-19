@@ -480,3 +480,78 @@ impl Default for RouteOptimizer {
         Self::new()
     }
 }
+
+/// Result of a point-to-point routing query.
+pub struct RoutingResult {
+    /// Path as (coordinate, node_id) pairs, start → end
+    pub path: Vec<(Coordinate, String)>,
+    /// Total path distance in metres
+    pub distance_m: f64,
+}
+
+impl RouteOptimizer {
+    /// Return the ID of the node in the spatial registry closest to `coord`.
+    pub fn nearest_node_id(&self, coord: &Coordinate) -> Option<&str> {
+        self.spatial_registry
+            .iter()
+            .min_by(|(_, c1), (_, c2)| {
+                coord_distance(c1, coord)
+                    .partial_cmp(&coord_distance(c2, coord))
+                    .unwrap_or(std::cmp::Ordering::Equal)
+            })
+            .map(|(id, _)| id.as_str())
+    }
+
+    /// Point-to-point A* routing on the pre-built graph.
+    ///
+    /// Must be called after `populate_spatial_registry_from_geo_ways` and
+    /// `build_graph_from_geo_ways`.
+    pub fn route_between(&self, from: &Coordinate, to: &Coordinate) -> Result<RoutingResult> {
+        let start_id = self.nearest_node_id(from)
+            .ok_or_else(|| anyhow::anyhow!("Graph has no nodes"))?
+            .to_string();
+        let goal_id = self.nearest_node_id(to)
+            .ok_or_else(|| anyhow::anyhow!("Graph has no nodes"))?
+            .to_string();
+
+        let start_idx = *self.node_index.get(&start_id)
+            .ok_or_else(|| anyhow::anyhow!("Start node not in graph index"))?;
+        let goal_idx = *self.node_index.get(&goal_id)
+            .ok_or_else(|| anyhow::anyhow!("Goal node not in graph index"))?;
+
+        let goal_coord = *self.spatial_registry.get(&goal_id)
+            .ok_or_else(|| anyhow::anyhow!("Goal coordinate not in spatial registry"))?;
+
+        // Borrow fields individually so the closures don't need to capture all of `self`
+        let graph = &self.graph;
+        let registry = &self.spatial_registry;
+
+        let astar_result = petgraph::algo::astar(
+            graph,
+            start_idx,
+            |n| n == goal_idx,
+            |e| *e.weight(),
+            |n| {
+                registry.get(graph[n].id.as_str())
+                    .map(|c| coord_distance(c, &goal_coord))
+                    .unwrap_or(0.0)
+            },
+        );
+
+        match astar_result {
+            None => anyhow::bail!(
+                "No route found between the two points. \
+                 The road network in the PBF file may not connect them."
+            ),
+            Some((cost, node_path)) => {
+                let path: Vec<(Coordinate, String)> = node_path.iter()
+                    .filter_map(|&idx| {
+                        let id = graph[idx].id.clone();
+                        registry.get(&id).map(|&c| (c, id))
+                    })
+                    .collect();
+                Ok(RoutingResult { path, distance_m: cost })
+            }
+        }
+    }
+}

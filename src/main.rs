@@ -59,6 +59,10 @@ enum Commands {
     /// Show health/status of all rmpca jails and services
     Status(commands::status::StatusArgs),
 
+    /// Offline point-to-point routing via a local .osm.pbf file
+    #[command(aliases = &["rt"])]
+    Route(commands::route::RouteArgs),
+
     /// JSON interface for GUI integration (reads stdin, writes stdout)
     Serve(commands::serve::ServeArgs),
 
@@ -120,6 +124,7 @@ async fn main() -> Result<()> {
         Commands::Validate(args) => commands::validate::run(args, &client).await,
         Commands::Pipeline(args) => commands::pipeline::run(args, &client).await,
         Commands::Status(args) => commands::status::run(args, &client).await,
+        Commands::Route(args) => commands::route::run(args, &config),
         Commands::Serve(args) => commands::serve::run(args, &config),
         Commands::Logs(args) => commands::logs::run(args, &client).await,
         Commands::TestProperties => {
