@@ -1,0 +1,26 @@
+# Rust build artifacts
+/target/
+**/target/
+
+# Cargo lock file (optional, uncomment if you prefer not to commit it)
+# Cargo.lock
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Rust analyzer
+.rust-analyzer/
+
+# Build output
+*.rs.bk
+*.o
+*.so
+*.a
+
+# Debug info
+*.pdb

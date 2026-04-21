@@ -1,0 +1,73 @@
+[package]
+name = "rmpca"
+version = "0.1.0"
+edition = "2021"
+description = "Enterprise-grade unified CLI for rmp.ca operations - Rust port"
+license = "MIT"
+authors = ["RouteMasterPro Team"]
+
+[dependencies]
+# CLI argument parsing
+clap = { version = "4.5", features = ["derive", "env"] }
+
+# Error handling
+anyhow = "1.0"
+thiserror = "1.0"
+
+# Async runtime
+tokio = { version = "1.35", features = ["full"] }
+
+# HTTP client for jail communication
+reqwest = { version = "0.11", features = ["json"] }
+
+# JSON/GeoJSON parsing
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+geojson = "0.24"
+
+# Graph algorithms
+petgraph = "0.6"
+
+# Geospatial calculations
+geo = "0.27"
+
+# Logging with JSON support
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["json"] }
+
+# Layered configuration (defaults → config file → env vars → CLI flags)
+figment = { version = "0.10", features = ["env", "toml"] }
+
+# Zero-copy graph serialization (for instant map loading)
+rkyv = "0.7"  # Zero-copy deserialization
+bincode = "1.3"   # Fallback serialization
+
+# Property-based testing for algorithmic correctness (dev dependency)
+proptest = "1.4"
+
+# Optional dependencies
+[dependencies.dirs]
+version = "5.0"
+optional = true
+
+[dependencies.chrono]
+version = "0.4"
+optional = false
+
+[dev-dependencies]
+# Property-based testing (also available in main for testing features)
+proptest = "1.4"
+
+[features]
+default = []
+lean4 = []  # Enable Lean 4 FFI integration (placeholder)
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true
+
+[[bin]]
+name = "rmpca"
+path = "src/main.rs"
